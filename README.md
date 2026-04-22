@@ -40,12 +40,8 @@ I used a **Raspberry Pi Zero 2W** and the [Spotpear RPI-Touch-Case bundle](https
    - Flash the SD card and insert it into your Pi.
    - Connect your Pi to the display.
 3. Boot the Pi and connect via SSH from your computer's terminal:
-   - **Windows** (PowerShell or Windows Terminal):
+   - **Windows, macOS or Linux** (PowerShell or Terminal):
      ```powershell
-     ssh rpi@rpi.local
-     ```
-   - **macOS or Linux** (Terminal):
-     ```bash
      ssh rpi@rpi.local
      ```
    - If you cannot connect via hostname, use your local IP address. You can find it on the Pi display.
