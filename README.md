@@ -86,7 +86,12 @@ I used a **Raspberry Pi Zero 2W** and the [Spotpear RPI-Touch-Case bundle](https
    ```
 
 3. **Copy the project files into `~/weather_app/`**  
-   Download or clone this repository, then copy the code files into `~/weather_app/`:
+   Clone the repository and copy the code files into `~/weather_app/`:
+   ```bash
+   git clone https://github.com/Pesicp/Desk-Mate-Zero.git
+   cp Desk-Mate-Zero/*.py Desk-Mate-Zero/requirements.txt ~/weather_app/
+   ```
+   Or download the ZIP from [GitHub](https://github.com/Pesicp/Desk-Mate-Zero) and extract it, then copy the files:
    ```bash
    cp main.py ui.py api.py system.py config.py requirements.txt ~/weather_app/
    ```
