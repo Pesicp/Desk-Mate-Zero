@@ -19,10 +19,8 @@
 
 I used a **Raspberry Pi Zero 2W** and the [Spotpear RPI-Touch-Case bundle](https://de.aliexpress.com/item/1005004999310505.html) (7-inch touchscreen).
 
-- All commands are designed for **Raspberry Pi OS Lite (64-bit)** with Python 3.
 - You only need the screws and threads that come with the touchscreen in the RPI-Touch-Case bundle.
 - Case STL files can be found on [Printables](https://www.printables.com/model/1402602).
-- If you run into problems, check the **Troubleshooting** section at the bottom.
 
 ---
 
@@ -31,8 +29,7 @@ I used a **Raspberry Pi Zero 2W** and the [Spotpear RPI-Touch-Case bundle](https
 1. Download and install the [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
 2. Using Raspberry Pi Imager:
    - Select **Raspberry Pi OS Lite (64-bit)**.
-   - Edit settings (⚙️). If you do not see the settings icon, press **Next** and it will appear.
-     - **Hostname:** `rpi`
+   - Edit settings
      - **Enable SSH** (password authentication)
      - **Username:** `rpi` (strongly recommended; all folder structures and scripts assume this username)
      - **Password:** `yourpassword`
@@ -90,31 +87,14 @@ I used a **Raspberry Pi Zero 2W** and the [Spotpear RPI-Touch-Case bundle](https
    git clone https://github.com/Pesicp/Desk-Mate-Zero.git
    cp Desk-Mate-Zero/Deskmate-Zero/*.py Desk-Mate-Zero/Deskmate-Zero/requirements.txt ~/weather_app/
    ```
-   Or download the ZIP from [GitHub](https://github.com/Pesicp/Desk-Mate-Zero) and extract it, then copy the files:
-   ```bash
-   cp Desk-Mate-Zero/Deskmate-Zero/main.py Desk-Mate-Zero/Deskmate-Zero/ui.py Desk-Mate-Zero/Deskmate-Zero/api.py Desk-Mate-Zero/Deskmate-Zero/system.py Desk-Mate-Zero/Deskmate-Zero/config.py Desk-Mate-Zero/Deskmate-Zero/radio_api.py Desk-Mate-Zero/Deskmate-Zero/radio_player.py Desk-Mate-Zero/Deskmate-Zero/setup_meteocons.py Desk-Mate-Zero/Deskmate-Zero/fix_sleet.py Desk-Mate-Zero/Deskmate-Zero/requirements.txt ~/weather_app/
-   ```
-   > **Important:** If this is your first install, also copy the default `config.json`:
-   > ```bash
-   > cp Desk-Mate-Zero/Deskmate-Zero/config.json ~/weather_app/
-   > ```
-   > If you already have a `config.json` with your saved cities, **do not overwrite it** or you will lose your settings.
 
-4. **Install Python dependencies:**
+4. **Install Kivy (from apt) and create the virtual environment:**
    ```bash
-   cd ~/weather_app
-   pip install -r requirements.txt
+   sudo apt install -y python3-kivy
+   python3 -m venv ~/weather_app/venv --system-site-packages
+   source ~/weather_app/venv/bin/activate
+   pip install -r ~/weather_app/requirements.txt
    ```
-   > **Note for Raspberry Pi OS Trixie (Python 3.13+):**  
-   > If `kivy` fails to build with `No module named 'cgi'`, install it from apt instead:
-   > ```bash
-   > sudo apt install -y python3-kivy
-   > deactivate
-   > rm -rf ~/weather_app/venv
-   > python3 -m venv ~/weather_app/venv --system-site-packages
-   > source ~/weather_app/venv/bin/activate
-   > pip install requests tzdata feedparser python-vlc
-   > ```
 
 ---
 
@@ -133,9 +113,6 @@ The app uses the free **Meteocons** icon set. Icons are downloaded as SVG and co
    cd ~/weather_app
    python setup_meteocons.py
    ```
-   This downloads static SVGs from the Meteocons CDN, converts them to 512x512 PNGs, and names them by WMO code.
-
-3. **To add a missing icon later**, edit `setup_meteocons.py`, add the WMO code and Meteocons slug, then re-run the script.
 
 **WMO weather codes reference:**
 | Code | Meaning |
@@ -190,14 +167,7 @@ The app uses the free **Meteocons** icon set. Icons are downloaded as SVG and co
 
 ## 6. Display / Touchscreen Configuration
 
-For Raspberry Pi OS Lite, Kivy needs access to the framebuffer or display server. Depending on your touchscreen, you may need to edit `/boot/config.txt`.
-
-1. **Edit `/boot/firmware/config.txt`:**
-   ```bash
-   sudo nano /boot/firmware/config.txt
-   ```
-
-2. **Add the display overlays and GPU memory:**  
+1. **Add the display overlays and GPU memory:**  
    For the Spotpear 7-inch DSI touchscreen, fix your `config.txt`:
    ```bash
    sudo nano /boot/firmware/config.txt
@@ -221,25 +191,20 @@ For Raspberry Pi OS Lite, Kivy needs access to the framebuffer or display server
    sudo reboot
    ```
 
-   > **Why both overlays?** No `/dev/dri/` means the DRM driver isn't loading. You replaced the V3D driver with just the DSI display overlay. `vc4-kms-v3d` is what creates the DRM device (`/dev/dri/card0`) that SDL2 needs to render. Without it, the app starts but the screen stays black.
 
-   *Check your display manufacturer's documentation for the exact DSI overlay name.*
-
-3. **Disable console blanking** so the screen never goes black:
+2. **Disable console blanking** so the screen never goes black:
    ```bash
    sudo nano /boot/firmware/cmdline.txt
    ```
-   Add `consoleblank=0` to the end of the existing line, then save and exit.
+   Add ` consoleblank=0` to the end of the existing line, then save and exit.
 
-   > **Why?** Console blanking is a Linux power-saving feature that turns the display off after ~10–15 minutes of inactivity. Since DeskMate is designed as a 24/7 display (clock, weather, slideshow), the screen would go black and stay black until you physically interact with it. Setting `consoleblank=0` keeps the display on permanently.
-
-4. **Enable console auto-login so the display stays active:**
+3. **Enable console auto-login so the display stays active:**
    ```bash
    sudo raspi-config
    ```
-   Navigate to **System Options → Boot / Auto Login → Console Autologin**.
+   Navigate to **System Options  / Auto Login → Confirm with yes**.
 
-5. **Reboot:**
+4. **Reboot:**
    ```bash
    sudo reboot
    ```
@@ -259,8 +224,6 @@ The app calls `sudo` for Wi-Fi management, shutdown, and reboot. To prevent the 
    ```
    rpi ALL=(ALL) NOPASSWD: /usr/bin/nmcli, /sbin/shutdown, /sbin/reboot, /usr/sbin/rfkill
    ```
-
-   > **Note:** If the paths above do not match your system, verify them with `which nmcli`, `which shutdown`, `which reboot`, and `which rfkill`.
 
 3. **Save and exit** (`Ctrl+O`, `Enter`, `Ctrl+X`).
 
@@ -320,12 +283,7 @@ The app calls `sudo` for Wi-Fi management, shutdown, and reboot. To prevent the 
    sudo systemctl start weather_app.service
    ```
 
-4. **Check the status:**
-   ```bash
-   sudo systemctl status weather_app.service
-   ```
-
-5. **Reboot to test auto-start:**
+4. **Reboot to test auto-start:**
    ```bash
    sudo reboot
    ```
@@ -340,7 +298,7 @@ The app calls `sudo` for Wi-Fi management, shutdown, and reboot. To prevent the 
    sudo systemctl stop avahi-daemon
    sudo systemctl disable bluetooth
    sudo systemctl stop bluetooth
-   sudo apt purge --ignore-missing wolfram-engine libreoffice* minecraft-pi -y || true
+   sudo apt purge --ignore-missing wolfram-engine libreoffice* -y || true
    sudo apt autoremove -y
    ```
 
@@ -351,7 +309,7 @@ The app calls `sudo` for Wi-Fi management, shutdown, and reboot. To prevent the 
    sudo ufw default deny incoming
    sudo ufw default allow outgoing
    ```
-   > ⚠️ `ufw reset` will erase any existing firewall rules you have configured.
+   Confirm with `y` (Yes).
 
 3. **Allow SSH only from your local subnet:**
    ```bash
@@ -379,40 +337,38 @@ The app calls `sudo` for Wi-Fi management, shutdown, and reboot. To prevent the 
 
 Free up SD card space and reduce the attack surface by removing packages you don't need.
 
-### What is safe to purge on a display-only device
-
-These commands are tailored for **Raspberry Pi OS Lite (64-bit, Trixie)** on a **Pi Zero 2W**. If a package is not installed, the command will simply skip it.
-
-```bash
 # Big space savers (~290 MB): Pi 5 kernel, compiler toolchain, kernel headers, dev libs, EEPROM updater, cloud-init
+```bash
 sudo apt purge -y linux-image-6.12.75+rpt-rpi-2712 build-essential gcc-14-aarch64-linux-gnu g++-14-aarch64-linux-gnu cpp-14-aarch64-linux-gnu cpp-aarch64-linux-gnu cpp-14 cpp linux-headers-6.12.75+rpt-common-rpi libpython3.13-dev rpi-eeprom cloud-init mkvtoolnix
-
-# Smaller cleanups: hotkey daemon, modem manager, swap, duplicate logger, first-boot wizard
+```
+# Smaller cleanups: swap
+```bash
 sudo dphys-swapfile swapoff
-sudo apt purge -y triggerhappy modemmanager dphys-swapfile rsyslog piwiz
-
+```
+# After setup is complete, remove git too (only needed to clone the repo)
+```bash
+sudo apt purge -y git
+```
 # Clean up
+```bash
 sudo apt autoremove -y
 sudo apt autoclean
-
-# After setup is complete, remove git too (only needed to clone the repo)
-sudo apt purge -y git
-sudo apt autoremove -y
 ```
-
 ### Clean up logs and temp files
-
-```bash
 # Keep only the last 7 days of systemd journals
+```bash
 sudo journalctl --vacuum-time=7d
-
+```
 # Clear old archived logs
+```bash
 sudo find /var/log -type f \( -name "*.gz" -o -name "*.old" -o -name "*.1" \) -delete 2>/dev/null || true
-
+```
 # Truncate active log files to zero (keeps the files, removes content)
+```bash
 sudo find /var/log -type f -exec truncate -s 0 {} \; 2>/dev/null || true
-
+```
 # Clean temp directories
+```bash
 sudo rm -rf /tmp/* /var/tmp/* 2>/dev/null || true
 ```
 
@@ -423,16 +379,15 @@ sudo rm -rf /tmp/* /var/tmp/* 2>/dev/null || true
 Keep the operating system secure without ever touching the weather app.
 
 **What this does:**
-- Checks daily for **security updates only**
+- Checks weekly for **security updates only**
 - Auto-installs critical system packages: kernel, OpenSSL, OpenSSH, UFW, firmware
 - **Never** updates Python, Kivy, pip, or the weather app
-- Auto-reboots at 4 AM if a kernel update requires it
+- Auto-reboots every Monday at 4 AM if a kernel update requires it
 
 ### Set it up
 
 1. **Install the package:**
    ```bash
-   sudo apt update
    sudo apt install -y unattended-upgrades apt-listchanges
    ```
 
@@ -505,18 +460,6 @@ Keep the operating system secure without ever touching the weather app.
    sudo systemctl status apt-daily-upgrade.timer
    ```
    You should see `Trigger: Mon ... 04:00:00`.
-
-7. **Read the update log after the first run:**
-   ```bash
-   cat /var/log/unattended-upgrades/unattended-upgrades.log
-   ```
-
-> **Manual app updates:** When you want new features, update the app yourself:
-> ```bash
-> cd ~/weather_app
-> git pull
-> sudo systemctl restart weather_app.service
-> ```
 
 ---
 
