@@ -88,15 +88,15 @@ I used a **Raspberry Pi Zero 2W** and the [Spotpear RPI-Touch-Case bundle](https
    Clone the repository and copy the code files into `~/weather_app/`:
    ```bash
    git clone https://github.com/Pesicp/Desk-Mate-Zero.git
-   cp Desk-Mate-Zero/*.py Desk-Mate-Zero/requirements.txt ~/weather_app/
+   cp Desk-Mate-Zero/Deskmate-Zero/*.py Desk-Mate-Zero/Deskmate-Zero/requirements.txt ~/weather_app/
    ```
    Or download the ZIP from [GitHub](https://github.com/Pesicp/Desk-Mate-Zero) and extract it, then copy the files:
    ```bash
-   cp main.py ui.py api.py system.py config.py radio_api.py radio_player.py setup_meteocons.py fix_sleet.py requirements.txt ~/weather_app/
+   cp Desk-Mate-Zero/Deskmate-Zero/main.py Desk-Mate-Zero/Deskmate-Zero/ui.py Desk-Mate-Zero/Deskmate-Zero/api.py Desk-Mate-Zero/Deskmate-Zero/system.py Desk-Mate-Zero/Deskmate-Zero/config.py Desk-Mate-Zero/Deskmate-Zero/radio_api.py Desk-Mate-Zero/Deskmate-Zero/radio_player.py Desk-Mate-Zero/Deskmate-Zero/setup_meteocons.py Desk-Mate-Zero/Deskmate-Zero/fix_sleet.py Desk-Mate-Zero/Deskmate-Zero/requirements.txt ~/weather_app/
    ```
    > **Important:** If this is your first install, also copy the default `config.json`:
    > ```bash
-   > cp config.json ~/weather_app/
+   > cp Desk-Mate-Zero/Deskmate-Zero/config.json ~/weather_app/
    > ```
    > If you already have a `config.json` with your saved cities, **do not overwrite it** or you will lose your settings.
 
