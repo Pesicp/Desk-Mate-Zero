@@ -3,11 +3,11 @@
 # Description
 - **Picture slideshow** — New picture every 60 minutes, picture changes on touch.
 - **Fullscreen Clock** — When Wi-Fi is on, it shows time from the first weather card. When Wi-Fi is off, it shows system/network time.
-- **Internet Radio** — Browse and stream thousands of free internet radio stations via the Radio Browser API. Search by country or station name. Radio keeps playing in the background while you browse other cards. Sidebar layout with volume, stop, favorites (♡/♥), country browse, and a fake audio visualizer. A small indicator appears on all slides when radio is playing.
-- **Weather Forecast** — Shows temperature, current condition, current icon, hourly (8 hours), and daily (5 days) forecasts. Icons are high-resolution 512×512 Meteocons auto-discovered by WMO weather code.
-  - Also shows time in the selected city. When Wi-Fi is off the clock keeps ticking, the weather disappears. Has a manual refresh button.
-- **Add City** — Add and remove cities. Limit is 10 cities for better performance. Duplicates cannot be added.
-- **Power, Wi-Fi** — Power off, reboot. Turn Wi-Fi on or off, connect, disconnect, forget networks with ease.
+- **Internet Radio** — Browse and stream thousands of free internet radio stations via the Radio Browser API. Search by country or station name. Radio keeps playing in the background while you browse other cards. Sidebar layout with volume, stop, pause, favorites, and country browse. A small indicator appears on all slides when radio is playing. An **EQ button** (top-right on the radio card) opens a popup with 8 equalizer presets: Off, Flat, Classical, Club, Dance, Full Bass, Rock, and Pop.
+- **Weather Forecast** — Shows temperature, current condition, current icon, hourly (8 hours), and daily (5 days) forecasts with **condition-specific dynamic backgrounds** (clear sky, rain, snow, thunderstorm, etc., with day/night variants). Icons are high-resolution 512×512 Meteocons auto-discovered by WMO weather code.
+  - Also shows time in the selected city. The weather UI stays hidden until the first successful data fetch; only the clock and date are visible while loading. When Wi-Fi is off the clock keeps ticking, the weather disappears.
+- **Add City** — Add and remove cities. Limit is **5 cities** for better performance on the Pi Zero 2W. Duplicates cannot be added.
+- **Power, Wi-Fi, SSH** — Power off, reboot. Turn Wi-Fi on or off, connect, disconnect, forget networks with ease. Toggle SSH on or off directly from the UI.
 - **Double press/touch to lock/unlock the screen** — Disabled for the Add City card.
   - It is set up really fast to avoid accidental lock: **0.2 seconds**. With 2 fingers it works best.
   - If the touch is not responding, you have locked the screen.
@@ -94,6 +94,7 @@ I used a **Raspberry Pi Zero 2W** and the [Spotpear RPI-Touch-Case bundle](https
    python3 -m venv ~/weather_app/venv --system-site-packages
    source ~/weather_app/venv/bin/activate
    pip install -r ~/weather_app/requirements.txt
+   pip install python-vlc
    ```
 
 ---
@@ -222,7 +223,7 @@ The app calls `sudo` for Wi-Fi management, shutdown, and reboot. To prevent the 
 
 2. **Paste the following (replace `rpi` if you used a different username):**
    ```
-   rpi ALL=(ALL) NOPASSWD: /usr/bin/nmcli, /sbin/shutdown, /sbin/reboot, /usr/sbin/rfkill
+   rpi ALL=(ALL) NOPASSWD: /usr/bin/nmcli, /sbin/shutdown, /sbin/reboot, /usr/sbin/rfkill, /bin/systemctl
    ```
 
 3. **Save and exit** (`Ctrl+O`, `Enter`, `Ctrl+X`).
@@ -476,9 +477,14 @@ Keep the operating system secure without ever touching the weather app.
   Timezone values in `config.json` must be valid IANA names (e.g. `Europe/Berlin`, `Asia/Tokyo`).  
   You can find your timezone at [https://en.wikipedia.org/wiki/List_of_tz_database_time_zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
 - **No audio from radio:**
-  1. Check that VLC is installed:
+  1. Check that VLC and the Python bindings are installed:
      ```bash
      which cvlc
+     /home/rpi/weather_app/venv/bin/python -c "import vlc; print(vlc.__file__)"
+     ```
+     If `python-vlc` is missing, install it:
+     ```bash
+     /home/rpi/weather_app/venv/bin/pip install python-vlc
      ```
   2. List ALSA audio devices:
      ```bash
@@ -493,7 +499,10 @@ Keep the operating system secure without ever touching the weather app.
      ```bash
      cvlc --aout=alsa --no-video "https://stream.example.com/radio"
      ```
-     If you hear sound, the app should work. If not, check `~/.local/share/deskmate/deskmate.log` for VLC errors.
+     If you hear sound, the app should work. If not, check the service logs for VLC errors:
+     ```bash
+     sudo journalctl -u weather_app.service -f
+     ```
 
 - **Black screen / app starts but nothing displays:**
   1. Check that the DRM device exists:
